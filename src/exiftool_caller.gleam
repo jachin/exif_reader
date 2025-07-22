@@ -8,6 +8,8 @@ import gleam/option
 import gleam/result
 import gleam/string
 import shellout
+import tempo
+import tempo/datetime
 
 pub type ExifData {
   ExifData(
@@ -16,9 +18,9 @@ pub type ExifData {
     file_name: String,
     directory: String,
     file_size: String,
-    file_modify_date: String,
-    file_access_date: String,
-    file_inode_change_date: String,
+    file_modify_date: tempo.DateTime,
+    file_access_date: tempo.DateTime,
+    file_inode_change_date: tempo.DateTime,
     file_permissions: String,
     file_type: String,
     file_type_extension: String,
@@ -31,8 +33,8 @@ pub type ExifData {
     media_data_offset: option.Option(Int),
     // Movie/Video information
     movie_header_version: option.Option(Int),
-    create_date: option.Option(String),
-    modify_date: option.Option(String),
+    create_date: option.Option(tempo.DateTime),
+    modify_date: option.Option(tempo.DateTime),
     time_scale: option.Option(Int),
     duration: option.Option(String),
     preferred_rate: option.Option(Float),
@@ -46,8 +48,8 @@ pub type ExifData {
     next_track_id: option.Option(Int),
     // Track information
     track_header_version: option.Option(Int),
-    track_create_date: option.Option(String),
-    track_modify_date: option.Option(String),
+    track_create_date: option.Option(tempo.DateTime),
+    track_modify_date: option.Option(tempo.DateTime),
     track_id: option.Option(Int),
     track_duration: option.Option(String),
     track_layer: option.Option(Int),
@@ -85,8 +87,8 @@ pub type ExifData {
     content_describes: option.Option(String),
     matrix_structure: option.Option(String),
     media_header_version: option.Option(Int),
-    media_create_date: option.Option(String),
-    media_modify_date: option.Option(String),
+    media_create_date: option.Option(tempo.DateTime),
+    media_modify_date: option.Option(tempo.DateTime),
     media_time_scale: option.Option(Int),
     media_duration: option.Option(String),
     media_language_code: option.Option(String),
@@ -108,7 +110,7 @@ pub type ExifData {
     // Content metadata
     display_name: option.Option(String),
     description: option.Option(String),
-    creation_date: option.Option(String),
+    creation_date: option.Option(tempo.DateTime),
     keywords: option.Option(String),
     // Calculated fields
     image_size: option.Option(String),
@@ -206,10 +208,10 @@ pub fn to_string(exif_data: ExifData) -> String {
   <> exif_data.file_type
   <> " ("
   <> exif_data.mime_type
-  <> ")\nModified: "
-  <> exif_data.file_modify_date
+  <> "\nModified: "
+  <> datetime.to_string(exif_data.file_modify_date)
   <> case exif_data.creation_date {
-    option.Some(date) -> "\nCreated: " <> date
+    option.Some(date) -> "\nCreated: " <> datetime.to_string(date)
     option.None -> ""
   }
   <> content_section
@@ -241,8 +243,38 @@ fn exiftool_json_decoder() -> decode.Decoder(List(ExifData)) {
 }
 
 /// Decoder that accepts both int and float values, converting ints to floats
-fn number_as_float() -> decode.Decoder(Float) {
+fn number_as_float_decoder() -> decode.Decoder(Float) {
   decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
+}
+
+/// Decoder for exiftool datetime strings (format: "YYYY:MM:DD HH:MM:SS" or with timezone)
+fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
+  decode.string
+  |> decode.then(fn(datetime_str) {
+    // Handle different datetime formats from exiftool
+    let result = case
+      string.contains(datetime_str, "+") || string.contains(datetime_str, "-")
+    {
+      True -> {
+        // Has timezone - Format: "2025:07:09 20:31:55-05:00"
+        datetime.parse(datetime_str, tempo.Custom("YYYY:MM:DD HH:mm:ssZZ"))
+      }
+      False -> {
+        // No timezone - assume UTC - Format: "2025:07:10 01:31:54"
+        let with_utc = datetime_str <> "+00:00"
+        datetime.parse(with_utc, tempo.Custom("YYYY:MM:DD HH:mm:ssZZ"))
+      }
+    }
+
+    case result {
+      Ok(dt) -> decode.success(dt)
+      Error(_) ->
+        decode.failure(
+          datetime.literal("1970-01-01T00:01:01Z"),
+          "tempo.DateTime",
+        )
+    }
+  })
 }
 
 /// Decoder helper that wraps optional_field and returns an Option type
@@ -266,11 +298,11 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use file_name <- decode.field("FileName", decode.string)
   use directory <- decode.field("Directory", decode.string)
   use file_size <- decode.field("FileSize", decode.string)
-  use file_modify_date <- decode.field("FileModifyDate", decode.string)
-  use file_access_date <- decode.field("FileAccessDate", decode.string)
+  use file_modify_date <- decode.field("FileModifyDate", datetime_decoder())
+  use file_access_date <- decode.field("FileAccessDate", datetime_decoder())
   use file_inode_change_date <- decode.field(
     "FileInodeChangeDate",
-    decode.string,
+    datetime_decoder(),
   )
   use file_permissions <- decode.field("FilePermissions", decode.string)
   use file_type <- decode.field("FileType", decode.string)
@@ -289,11 +321,14 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
 
   // Movie/Video information - optional for non-video files
   use movie_header_version <- optional_field("MovieHeaderVersion", decode.int)
-  use create_date <- optional_field("CreateDate", decode.string)
-  use modify_date <- optional_field("ModifyDate", decode.string)
+  use create_date <- optional_field("CreateDate", datetime_decoder())
+  use modify_date <- optional_field("ModifyDate", datetime_decoder())
   use time_scale <- optional_field("TimeScale", decode.int)
   use duration <- optional_field("Duration", decode.string)
-  use preferred_rate <- optional_field("PreferredRate", number_as_float())
+  use preferred_rate <- optional_field(
+    "PreferredRate",
+    number_as_float_decoder(),
+  )
   use preferred_volume <- optional_field("PreferredVolume", decode.string)
   use preview_time <- optional_field("PreviewTime", decode.string)
   use preview_duration <- optional_field("PreviewDuration", decode.string)
@@ -305,8 +340,8 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
 
   // Track information - optional for non-video files
   use track_header_version <- optional_field("TrackHeaderVersion", decode.int)
-  use track_create_date <- optional_field("TrackCreateDate", decode.string)
-  use track_modify_date <- optional_field("TrackModifyDate", decode.string)
+  use track_create_date <- optional_field("TrackCreateDate", datetime_decoder())
+  use track_modify_date <- optional_field("TrackModifyDate", datetime_decoder())
   use track_id <- optional_field("TrackID", decode.int)
   use track_duration <- optional_field("TrackDuration", decode.string)
   use track_layer <- optional_field("TrackLayer", decode.int)
@@ -338,7 +373,10 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use y_resolution <- optional_field("YResolution", decode.int)
   use compressor_name <- optional_field("CompressorName", decode.string)
   use bit_depth <- optional_field("BitDepth", decode.int)
-  use video_frame_rate <- optional_field("VideoFrameRate", number_as_float())
+  use video_frame_rate <- optional_field(
+    "VideoFrameRate",
+    number_as_float_decoder(),
+  )
 
   // Camera information - optional
   use lens_model <- optional_field("LensModel", decode.string)
@@ -367,8 +405,8 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use content_describes <- optional_field("ContentDescribes", decode.string)
   use matrix_structure <- optional_field("MatrixStructure", decode.string)
   use media_header_version <- optional_field("MediaHeaderVersion", decode.int)
-  use media_create_date <- optional_field("MediaCreateDate", decode.string)
-  use media_modify_date <- optional_field("MediaModifyDate", decode.string)
+  use media_create_date <- optional_field("MediaCreateDate", datetime_decoder())
+  use media_modify_date <- optional_field("MediaModifyDate", datetime_decoder())
   use media_time_scale <- optional_field("MediaTimeScale", decode.int)
   use media_duration <- optional_field("MediaDuration", decode.string)
   use media_language_code <- optional_field("MediaLanguageCode", decode.string)
@@ -388,23 +426,26 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   // Device information - optional
   use make <- optional_field("Make", decode.string)
   use model <- optional_field("Model", decode.string)
-  use software <- optional_field("Software", number_as_float())
+  use software <- optional_field("Software", number_as_float_decoder())
 
   // Content metadata - optional
   use display_name <- optional_field("DisplayName", decode.string)
   use description <- optional_field("Description", decode.string)
-  use creation_date <- optional_field("CreationDate", decode.string)
+  use creation_date <- optional_field("CreationDate", datetime_decoder())
   use keywords <- optional_field("Keywords", decode.string)
 
   // Calculated fields - optional
   use image_size <- optional_field("ImageSize", decode.string)
-  use megapixels <- optional_field("Megapixels", number_as_float())
+  use megapixels <- optional_field("Megapixels", number_as_float_decoder())
   use avg_bitrate <- optional_field("AvgBitrate", decode.string)
   use rotation <- optional_field("Rotation", decode.int)
   use lens_id <- optional_field("LensID", decode.string)
 
   // Tool information
-  use exif_tool_version <- decode.field("ExifToolVersion", number_as_float())
+  use exif_tool_version <- decode.field(
+    "ExifToolVersion",
+    number_as_float_decoder(),
+  )
   use warning <- optional_field("Warning", decode.string)
   use full_frame_rate_playback_intent <- optional_field(
     "FullFrameRatePlaybackIntent",

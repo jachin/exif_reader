@@ -1,6 +1,59 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "darwin.apple_sdk.frameworks.CoreServices": {
+      "resolved": "github:NixOS/nixpkgs/2a2130494ad647f953593c4e84ea4df839fbd68c?narHash=sha256-Q82Ms%2BFQmgOBkdoSVm%2BFBpuFoeUAffNerR5yVV7SgT8%3D#darwin.apple_sdk.frameworks.CoreServices",
+      "source": "nixpkg"
+    },
+    "elixir@latest": {
+      "last_modified": "2024-12-27T03:08:00Z",
+      "plugin_version": "0.0.1",
+      "resolved": "github:NixOS/nixpkgs/7cc0bff31a3a705d3ac4fdceb030a17239412210#elixir",
+      "source": "devbox-search",
+      "version": "1.18.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hdd9x34p0gplcl1bramq80lqi76xrd87-elixir-1.18.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hdd9x34p0gplcl1bramq80lqi76xrd87-elixir-1.18.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/a4g29icpil9b1hsniqspz5k110h4df8v-elixir-1.18.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/a4g29icpil9b1hsniqspz5k110h4df8v-elixir-1.18.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/b3h6f36zd4gjivb76lvvs6a9bi1mq9q8-elixir-1.18.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/b3h6f36zd4gjivb76lvvs6a9bi1mq9q8-elixir-1.18.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3zd200bq28mv3pdbii7rijzmb0gmhhs3-elixir-1.18.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3zd200bq28mv3pdbii7rijzmb0gmhhs3-elixir-1.18.1"
+        }
+      }
+    },
     "erlang@27.2": {
       "last_modified": "2024-12-26T01:25:00Z",
       "resolved": "github:NixOS/nixpkgs/16e046229f3b4f53257973a5532bcbb72457d2f2#erlang",
@@ -98,6 +151,54 @@
             }
           ],
           "store_path": "/nix/store/clnh61hv21qqfnc3jzyfw0bkd7dk95kb-gleam-1.11.1"
+        }
+      }
+    },
+    "rebar3@latest": {
+      "last_modified": "2024-12-26T01:25:00Z",
+      "resolved": "github:NixOS/nixpkgs/16e046229f3b4f53257973a5532bcbb72457d2f2#rebar3",
+      "source": "devbox-search",
+      "version": "3.24.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/j8x4awhnv0jnbg5y3b7i61jphgl5ikp8-rebar3-3.24.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/j8x4awhnv0jnbg5y3b7i61jphgl5ikp8-rebar3-3.24.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/iaj9f0501klpszxyzpzabfyf0lir3b3v-rebar3-3.24.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/iaj9f0501klpszxyzpzabfyf0lir3b3v-rebar3-3.24.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/xyha83p1q95zkwzflqf9iy5p7fi8539y-rebar3-3.24.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/xyha83p1q95zkwzflqf9iy5p7fi8539y-rebar3-3.24.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0320iwslqglskr2jmak6x5wq6sssybqa-rebar3-3.24.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0320iwslqglskr2jmak6x5wq6sssybqa-rebar3-3.24.0"
         }
       }
     }

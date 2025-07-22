@@ -2,7 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.15.0/.schema/devbox.schema.json",
   "packages": [
     "gleam@1",
-    "erlang@27.2"
+    "erlang@27.2",
+    "rebar3@latest",
+    "elixir@latest"
   ],
   "shell": {
     "init_hook": [
