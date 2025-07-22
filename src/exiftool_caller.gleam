@@ -240,6 +240,11 @@ fn exiftool_json_decoder() -> decode.Decoder(List(ExifData)) {
   decode.list(of: exif_data_decoder())
 }
 
+/// Decoder that accepts both int and float values, converting ints to floats
+fn number_as_float() -> decode.Decoder(Float) {
+  decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
+}
+
 /// Decoder helper that wraps optional_field and returns an Option type
 fn optional_field(
   field_name: String,
@@ -288,7 +293,7 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use modify_date <- optional_field("ModifyDate", decode.string)
   use time_scale <- optional_field("TimeScale", decode.int)
   use duration <- optional_field("Duration", decode.string)
-  use preferred_rate <- optional_field("PreferredRate", decode.float)
+  use preferred_rate <- optional_field("PreferredRate", number_as_float())
   use preferred_volume <- optional_field("PreferredVolume", decode.string)
   use preview_time <- optional_field("PreviewTime", decode.string)
   use preview_duration <- optional_field("PreviewDuration", decode.string)
@@ -333,7 +338,7 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use y_resolution <- optional_field("YResolution", decode.int)
   use compressor_name <- optional_field("CompressorName", decode.string)
   use bit_depth <- optional_field("BitDepth", decode.int)
-  use video_frame_rate <- optional_field("VideoFrameRate", decode.float)
+  use video_frame_rate <- optional_field("VideoFrameRate", number_as_float())
 
   // Camera information - optional
   use lens_model <- optional_field("LensModel", decode.string)
@@ -383,7 +388,7 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
   // Device information - optional
   use make <- optional_field("Make", decode.string)
   use model <- optional_field("Model", decode.string)
-  use software <- optional_field("Software", decode.float)
+  use software <- optional_field("Software", number_as_float())
 
   // Content metadata - optional
   use display_name <- optional_field("DisplayName", decode.string)
@@ -393,13 +398,13 @@ fn exif_data_decoder() -> decode.Decoder(ExifData) {
 
   // Calculated fields - optional
   use image_size <- optional_field("ImageSize", decode.string)
-  use megapixels <- optional_field("Megapixels", decode.float)
+  use megapixels <- optional_field("Megapixels", number_as_float())
   use avg_bitrate <- optional_field("AvgBitrate", decode.string)
   use rotation <- optional_field("Rotation", decode.int)
   use lens_id <- optional_field("LensID", decode.string)
 
   // Tool information
-  use exif_tool_version <- decode.field("ExifToolVersion", decode.float)
+  use exif_tool_version <- decode.field("ExifToolVersion", number_as_float())
   use warning <- optional_field("Warning", decode.string)
   use full_frame_rate_playback_intent <- optional_field(
     "FullFrameRatePlaybackIntent",
