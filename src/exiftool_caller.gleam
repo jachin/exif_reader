@@ -274,12 +274,12 @@ fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
     {
       True -> {
         // Has timezone - Format: "2025:07:09 20:31:55-05:00"
-        datetime.parse(datetime_str, tempo.Custom("YYYY:MM:DD HH:mm:ssZZ"))
+        datetime.parse(datetime_str, tempo.Custom("YYYY:MM:DD HH:mm:ssZ"))
       }
       False -> {
         // No timezone - assume UTC - Format: "2025:07:10 01:31:54"
         let with_utc = datetime_str <> "+00:00"
-        datetime.parse(with_utc, tempo.Custom("YYYY:MM:DD HH:mm:ssZZ"))
+        datetime.parse(with_utc, tempo.Custom("YYYY:MM:DD HH:mm:ss"))
       }
     }
 
