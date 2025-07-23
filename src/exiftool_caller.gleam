@@ -10,6 +10,7 @@ import gleam/string
 import shellout
 import tempo
 import tempo/datetime
+import tempo/error
 
 pub type ExifData {
   ExifData(
@@ -247,6 +248,22 @@ fn number_as_float_decoder() -> decode.Decoder(Float) {
   decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
 }
 
+/// Convert tempo parse error to human-friendly error message
+fn format_datetime_parse_error(error: error.DateTimeParseError) -> String {
+  case error {
+    error.DateTimeInvalidFormat(input) ->
+      "Invalid datetime format for \""
+      <> input
+      <> "\". Expected format: YYYY:MM:DD HH:MM:SS"
+    error.DateTimeDateParseError(input, _) ->
+      "Month out of bounds in \"" <> input <> "\""
+    error.DateTimeTimeParseError(input, _) ->
+      "Day out of bounds in \"" <> input <> "\""
+    error.DateTimeOffsetParseError(input, _) ->
+      "Time out of bounds in \"" <> input <> "\""
+  }
+}
+
 /// Decoder for exiftool datetime strings (format: "YYYY:MM:DD HH:MM:SS" or with timezone)
 fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
   decode.string
@@ -268,10 +285,10 @@ fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
 
     case result {
       Ok(dt) -> decode.success(dt)
-      Error(_) ->
+      Error(parse_error) ->
         decode.failure(
           datetime.literal("1970-01-01T00:01:01Z"),
-          "tempo.DateTime",
+          format_datetime_parse_error(parse_error),
         )
     }
   })
