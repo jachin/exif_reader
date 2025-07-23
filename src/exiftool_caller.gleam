@@ -269,17 +269,26 @@ fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
   decode.string
   |> decode.then(fn(datetime_str) {
     // Handle different datetime formats from exiftool
+    // Replace +00:00 with Z for better parsing compatibility
+    let normalized_datetime = string.replace(datetime_str, "+00:00", "Z")
+
     let result = case
-      string.contains(datetime_str, "+") || string.contains(datetime_str, "-")
+      string.contains(normalized_datetime, "+")
+      || string.contains(normalized_datetime, "-")
+      || string.contains(normalized_datetime, "Z")
     {
       True -> {
-        // Has timezone - Format: "2025:07:09 20:31:55-05:00"
-        datetime.parse(datetime_str, tempo.Custom("YYYY:MM:DD HH:mm:ssZ"))
+        // Has timezone - Format: "2025:07:09 20:31:55-05:00" or "2025:07:09 20:31:55Z"
+
+        datetime.parse(
+          normalized_datetime,
+          tempo.Custom("YYYY:MM:DD HH:mm:ssZ"),
+        )
       }
       False -> {
         // No timezone - assume UTC - Format: "2025:07:10 01:31:54"
-        let with_utc = datetime_str <> "+00:00"
-        datetime.parse(with_utc, tempo.Custom("YYYY:MM:DD HH:mm:ss"))
+        let with_utc = normalized_datetime <> "Z"
+        datetime.parse(with_utc, tempo.Custom("YYYY:MM:DD HH:mm:ssZ"))
       }
     }
 
