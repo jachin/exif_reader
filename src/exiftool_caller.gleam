@@ -244,7 +244,7 @@ fn exiftool_json_decoder() -> decode.Decoder(List(ExifData)) {
 }
 
 /// Decoder that accepts both int and float values, converting ints to floats
-fn number_as_float_decoder() -> decode.Decoder(Float) {
+pub fn number_as_float_decoder() -> decode.Decoder(Float) {
   decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
 }
 
