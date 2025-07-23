@@ -265,7 +265,7 @@ fn format_datetime_parse_error(error: error.DateTimeParseError) -> String {
 }
 
 /// Decoder for exiftool datetime strings (format: "YYYY:MM:DD HH:MM:SS" or with timezone)
-fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
+pub fn datetime_decoder() -> decode.Decoder(tempo.DateTime) {
   decode.string
   |> decode.then(fn(datetime_str) {
     // Handle different datetime formats from exiftool
