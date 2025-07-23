@@ -317,7 +317,7 @@ fn optional_field(
   )
 }
 
-fn exif_data_decoder() -> decode.Decoder(ExifData) {
+pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
   // File information
   use source_file <- decode.field("SourceFile", decode.string)
 
