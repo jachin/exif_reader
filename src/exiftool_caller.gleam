@@ -128,75 +128,46 @@ pub type ExifData {
 }
 
 pub fn to_string(exif_data: ExifData) -> String {
-  let content_section = case exif_data.display_name, exif_data.description {
-    option.Some(name), option.Some(desc) ->
-      "\n\n=== Content ===\n"
-      <> "Display Name: "
-      <> name
-      <> "\n"
-      <> "Description: "
-      <> desc
-    option.Some(name), option.None ->
-      "\n\n=== Content ===\n" <> "Display Name: " <> name
-    option.None, option.Some(desc) ->
-      "\n\n=== Content ===\n" <> "Description: " <> desc
-    option.None, option.None -> ""
+  let opt_str = fn(opt: option.Option(String)) -> String {
+    case opt {
+      option.Some(s) -> s
+      option.None -> "missing"
+    }
   }
 
-  let video_section = case
-    exif_data.image_size,
-    exif_data.duration,
-    exif_data.video_frame_rate
-  {
-    option.Some(size), option.Some(dur), option.Some(fps) ->
-      "\n\n=== Video/Image Details ===\n"
-      <> "Dimensions: "
-      <> size
-      <> case exif_data.megapixels {
-        option.Some(mp) -> " (" <> string.inspect(mp) <> " MP)"
-        option.None -> ""
-      }
-      <> "\nDuration: "
-      <> dur
-      <> "\nFrame Rate: "
-      <> string.inspect(fps)
-      <> " fps"
-      <> case exif_data.avg_bitrate {
-        option.Some(br) -> "\nBitrate: " <> br
-        option.None -> ""
-      }
-    option.Some(size), option.None, _ ->
-      "\n\n=== Image Details ===\n"
-      <> "Dimensions: "
-      <> size
-      <> case exif_data.megapixels {
-        option.Some(mp) -> " (" <> string.inspect(mp) <> " MP)"
-        option.None -> ""
-      }
-    _, _, _ -> ""
+  let opt_float = fn(opt: option.Option(Float)) -> String {
+    case opt {
+      option.Some(f) -> string.inspect(f)
+      option.None -> "missing"
+    }
   }
 
-  let camera_section = case
-    exif_data.make,
-    exif_data.model,
-    exif_data.lens_model
-  {
-    option.Some(make), option.Some(model), option.Some(lens) ->
-      "\n\n=== Camera ===\n"
-      <> "Device: "
-      <> make
-      <> " "
-      <> model
-      <> "\nLens: "
-      <> lens
-      <> case exif_data.focal_length_in_35mm_format {
-        option.Some(fl) ->
-          "\nFocal Length (35mm): " <> focal_length.to_string(fl) <> "mm"
-        option.None -> ""
-      }
-    option.Some(make), option.Some(model), option.None ->
-      "\n\n=== Camera ===\n" <> "Device: " <> make <> " " <> model
-    _, _, _ -> ""
+  let opt_int = fn(opt: option.Option(Int)) -> String {
+    case opt {
+      option.Some(i) -> int.to_string(i)
+      option.None -> "missing"
+    }
+  }
+
+  let opt_datetime = fn(opt: option.Option(tempo.DateTime)) -> String {
+    case opt {
+      option.Some(dt) -> datetime.to_string(dt)
+      option.None -> "missing"
+    }
+  }
+
+  let opt_focal_length = fn(opt: option.Option(focal_length.FocalLength)) -> String {
+    case opt {
+      option.Some(fl) -> focal_length.to_string(fl) <> "mm"
+      option.None -> "missing"
+    }
+  }
+
+  let opt_list_str = fn(opt: option.Option(List(String))) -> String {
+    case opt {
+      option.Some(lst) -> string.join(lst, ", ")
+      option.None -> "missing"
+    }
   }
 
   "=== File Information ===\n"
@@ -204,21 +175,116 @@ pub fn to_string(exif_data: ExifData) -> String {
   <> exif_data.file_name
   <> "\nPath: "
   <> exif_data.source_file
+  <> "\nDirectory: "
+  <> exif_data.directory
   <> "\nSize: "
   <> exif_data.file_size
   <> "\nType: "
   <> exif_data.file_type
   <> " ("
   <> exif_data.mime_type
+  <> ")"
+  <> "\nFile Type Extension: "
+  <> exif_data.file_type_extension
   <> "\nModified: "
   <> datetime.to_string(exif_data.file_modify_date)
-  <> case exif_data.creation_date {
-    option.Some(date) -> "\nCreated: " <> datetime.to_string(date)
-    option.None -> ""
-  }
-  <> content_section
-  <> video_section
-  <> camera_section
+  <> "\nAccessed: "
+  <> datetime.to_string(exif_data.file_access_date)
+  <> "\nInode Changed: "
+  <> datetime.to_string(exif_data.file_inode_change_date)
+  <> "\nPermissions: "
+  <> exif_data.file_permissions
+  <> "\nCreated: "
+  <> opt_datetime(exif_data.creation_date)
+  <> "\n\n=== Content ===\n"
+  <> "Display Name: "
+  <> opt_str(exif_data.display_name)
+  <> "\nDescription: "
+  <> opt_str(exif_data.description)
+  <> "\nKeywords: "
+  <> opt_str(exif_data.keywords)
+  <> "\n\n=== Video/Image Details ===\n"
+  <> "Dimensions: "
+  <> opt_str(exif_data.image_size)
+  <> "\nWidth: "
+  <> opt_int(exif_data.image_width)
+  <> "\nHeight: "
+  <> opt_int(exif_data.image_height)
+  <> "\nMegapixels: "
+  <> opt_float(exif_data.megapixels)
+  <> "\nDuration: "
+  <> opt_str(exif_data.duration)
+  <> "\nFrame Rate: "
+  <> opt_float(exif_data.video_frame_rate)
+  <> " fps"
+  <> "\nBitrate: "
+  <> opt_str(exif_data.avg_bitrate)
+  <> "\nRotation: "
+  <> opt_int(exif_data.rotation)
+  <> "\nBit Depth: "
+  <> opt_int(exif_data.bit_depth)
+  <> "\n\n=== Camera ===\n"
+  <> "Make: "
+  <> opt_str(exif_data.make)
+  <> "\nModel: "
+  <> opt_str(exif_data.model)
+  <> "\nLens Model: "
+  <> opt_str(exif_data.lens_model)
+  <> "\nLens ID: "
+  <> opt_str(exif_data.lens_id)
+  <> "\nFocal Length (35mm): "
+  <> opt_focal_length(exif_data.focal_length_in_35mm_format)
+  <> "\nSoftware: "
+  <> opt_float(exif_data.software)
+  <> "\n\n=== Media Information ===\n"
+  <> "Major Brand: "
+  <> opt_str(exif_data.major_brand)
+  <> "\nMinor Version: "
+  <> opt_str(exif_data.minor_version)
+  <> "\nCompatible Brands: "
+  <> opt_list_str(exif_data.compatible_brands)
+  <> "\nMedia Data Size: "
+  <> opt_int(exif_data.media_data_size)
+  <> "\nMedia Data Offset: "
+  <> opt_int(exif_data.media_data_offset)
+  <> "\nCreate Date: "
+  <> opt_datetime(exif_data.create_date)
+  <> "\nModify Date: "
+  <> opt_datetime(exif_data.modify_date)
+  <> "\nTime Scale: "
+  <> opt_int(exif_data.time_scale)
+  <> "\nPreferred Rate: "
+  <> opt_float(exif_data.preferred_rate)
+  <> "\nPreferred Volume: "
+  <> opt_str(exif_data.preferred_volume)
+  <> "\n\n=== Audio Information ===\n"
+  <> "Audio Format: "
+  <> opt_str(exif_data.audio_format)
+  <> "\nAudio Channels: "
+  <> opt_int(exif_data.audio_channels)
+  <> "\nAudio Bits Per Sample: "
+  <> opt_int(exif_data.audio_bits_per_sample)
+  <> "\nAudio Sample Rate: "
+  <> opt_int(exif_data.audio_sample_rate)
+  <> "\nBalance: "
+  <> opt_int(exif_data.balance)
+  <> "\n\n=== Technical Details ===\n"
+  <> "Handler Type: "
+  <> opt_str(exif_data.handler_type)
+  <> "\nHandler Description: "
+  <> opt_str(exif_data.handler_description)
+  <> "\nCompressor ID: "
+  <> opt_str(exif_data.compressor_id)
+  <> "\nCompressor Name: "
+  <> opt_str(exif_data.compressor_name)
+  <> "\nGraphics Mode: "
+  <> opt_str(exif_data.graphics_mode)
+  <> "\nOp Color: "
+  <> opt_str(exif_data.op_color)
+  <> "\nExifTool Version: "
+  <> string.inspect(exif_data.exif_tool_version)
+  <> "\nWarning: "
+  <> opt_str(exif_data.warning)
 }
 
 pub fn main() -> Nil {
