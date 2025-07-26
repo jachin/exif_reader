@@ -1,4 +1,5 @@
 import argv
+import focal_length
 import gleam/dynamic/decode
 import gleam/int
 import gleam/io
@@ -75,7 +76,7 @@ pub type ExifData {
     // Camera information
     lens_model: option.Option(String),
     lens_model_eng_us: option.Option(String),
-    focal_length_in_35mm_format: option.Option(Int),
+    focal_length_in_35mm_format: option.Option(focal_length.FocalLength),
     focal_length_in_35mm_format_eng_us: option.Option(Int),
     // Audio information
     balance: option.Option(Int),
@@ -190,7 +191,7 @@ pub fn to_string(exif_data: ExifData) -> String {
       <> lens
       <> case exif_data.focal_length_in_35mm_format {
         option.Some(fl) ->
-          "\nFocal Length (35mm): " <> int.to_string(fl) <> "mm"
+          "\nFocal Length (35mm): " <> focal_length.to_string(fl) <> "mm"
         option.None -> ""
       }
     option.Some(make), option.Some(model), option.None ->
@@ -409,7 +410,7 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
   use lens_model_eng_us <- optional_field("LensModel-eng-US", decode.string)
   use focal_length_in_35mm_format <- optional_field(
     "FocalLengthIn35mmFormat",
-    decode.int,
+    focal_length.decoder(),
   )
   use focal_length_in_35mm_format_eng_us <- optional_field(
     "FocalLengthIn35mmFormat-eng-US",
