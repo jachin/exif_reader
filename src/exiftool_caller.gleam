@@ -290,7 +290,7 @@ pub fn to_string(exif_data: ExifData) -> String {
 pub fn main() -> Nil {
   case argv.load().arguments {
     [file_name] -> {
-      case get_media_file_metadata(file_name) {
+      case get_media_files_metadata(file_name) {
         Ok(exif_list) -> {
           list.each(exif_list, fn(exif_data) {
             io.println(to_string(exif_data))
@@ -644,7 +644,15 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
   ))
 }
 
-pub fn get_media_file_metadata(file_path: String) -> Result(List(ExifData), Nil) {
+pub fn get_media_file_metadata(file_path: String) -> Result(ExifData, Nil) {
+  get_media_files_metadata(file_path)
+  |> result.map(list.first)
+  |> result.flatten
+}
+
+pub fn get_media_files_metadata(
+  file_path: String,
+) -> Result(List(ExifData), Nil) {
   shellout.command(run: "exiftool", with: ["-j", file_path], in: ".", opt: [])
   |> result.try(fn(output) {
     case json.parse(output, exiftool_json_decoder()) {
@@ -688,4 +696,832 @@ pub fn get_media_file_metadata(file_path: String) -> Result(List(ExifData), Nil)
     shellout.exit(code)
   })
   |> result.replace_error(Nil)
+}
+
+/// Get the source_file from a Result(ExifData, e)
+pub fn get_source_file(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.source_file
+    Error(_) -> ""
+  }
+}
+
+/// Get the file_name from a Result(ExifData, e)
+pub fn get_file_name(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.file_name
+    Error(_) -> ""
+  }
+}
+
+/// Get the directory from a Result(ExifData, e)
+pub fn get_directory(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.directory
+    Error(_) -> ""
+  }
+}
+
+/// Get the file_size from a Result(ExifData, e)
+pub fn get_file_size(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.file_size
+    Error(_) -> ""
+  }
+}
+
+/// Get the file_modify_date from a Result(ExifData, e)
+pub fn get_file_modify_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> option.Some(data.file_modify_date)
+    Error(_) -> option.None
+  }
+}
+
+/// Get the file_access_date from a Result(ExifData, e)
+pub fn get_file_access_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> option.Some(data.file_access_date)
+    Error(_) -> option.None
+  }
+}
+
+/// Get the file_inode_change_date from a Result(ExifData, e)
+pub fn get_file_inode_change_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> option.Some(data.file_inode_change_date)
+    Error(_) -> option.None
+  }
+}
+
+/// Get the file_permissions from a Result(ExifData, e)
+pub fn get_file_permissions(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.file_permissions
+    Error(_) -> ""
+  }
+}
+
+/// Get the file_type from a Result(ExifData, e)
+pub fn get_file_type(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.file_type
+    Error(_) -> ""
+  }
+}
+
+/// Get the file_type_extension from a Result(ExifData, e)
+pub fn get_file_type_extension(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.file_type_extension
+    Error(_) -> ""
+  }
+}
+
+/// Get the mime_type from a Result(ExifData, e)
+pub fn get_mime_type(result: Result(ExifData, e)) -> String {
+  case result {
+    Ok(data) -> data.mime_type
+    Error(_) -> ""
+  }
+}
+
+/// Get the major_brand from a Result(ExifData, e)
+pub fn get_major_brand(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.major_brand
+    Error(_) -> option.None
+  }
+}
+
+/// Get the minor_version from a Result(ExifData, e)
+pub fn get_minor_version(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.minor_version
+    Error(_) -> option.None
+  }
+}
+
+/// Get the compatible_brands from a Result(ExifData, e)
+pub fn get_compatible_brands(
+  result: Result(ExifData, e),
+) -> option.Option(List(String)) {
+  case result {
+    Ok(data) -> data.compatible_brands
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_data_size from a Result(ExifData, e)
+pub fn get_media_data_size(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.media_data_size
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_data_offset from a Result(ExifData, e)
+pub fn get_media_data_offset(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.media_data_offset
+    Error(_) -> option.None
+  }
+}
+
+/// Get the movie_header_version from a Result(ExifData, e)
+pub fn get_movie_header_version(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.movie_header_version
+    Error(_) -> option.None
+  }
+}
+
+/// Get the create_date from a Result(ExifData, e)
+pub fn get_create_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.create_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the modify_date from a Result(ExifData, e)
+pub fn get_modify_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.modify_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the time_scale from a Result(ExifData, e)
+pub fn get_time_scale(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.time_scale
+    Error(_) -> option.None
+  }
+}
+
+/// Get the duration from a Result(ExifData, e)
+pub fn get_duration(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.duration
+    Error(_) -> option.None
+  }
+}
+
+/// Get the preferred_rate from a Result(ExifData, e)
+pub fn get_preferred_rate(result: Result(ExifData, e)) -> option.Option(Float) {
+  case result {
+    Ok(data) -> data.preferred_rate
+    Error(_) -> option.None
+  }
+}
+
+/// Get the preferred_volume from a Result(ExifData, e)
+pub fn get_preferred_volume(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.preferred_volume
+    Error(_) -> option.None
+  }
+}
+
+/// Get the preview_time from a Result(ExifData, e)
+pub fn get_preview_time(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.preview_time
+    Error(_) -> option.None
+  }
+}
+
+/// Get the preview_duration from a Result(ExifData, e)
+pub fn get_preview_duration(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.preview_duration
+    Error(_) -> option.None
+  }
+}
+
+/// Get the poster_time from a Result(ExifData, e)
+pub fn get_poster_time(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.poster_time
+    Error(_) -> option.None
+  }
+}
+
+/// Get the selection_time from a Result(ExifData, e)
+pub fn get_selection_time(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.selection_time
+    Error(_) -> option.None
+  }
+}
+
+/// Get the selection_duration from a Result(ExifData, e)
+pub fn get_selection_duration(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.selection_duration
+    Error(_) -> option.None
+  }
+}
+
+/// Get the current_time from a Result(ExifData, e)
+pub fn get_current_time(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.current_time
+    Error(_) -> option.None
+  }
+}
+
+/// Get the next_track_id from a Result(ExifData, e)
+pub fn get_next_track_id(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.next_track_id
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_header_version from a Result(ExifData, e)
+pub fn get_track_header_version(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.track_header_version
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_create_date from a Result(ExifData, e)
+pub fn get_track_create_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.track_create_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_modify_date from a Result(ExifData, e)
+pub fn get_track_modify_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.track_modify_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_id from a Result(ExifData, e)
+pub fn get_track_id(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.track_id
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_duration from a Result(ExifData, e)
+pub fn get_track_duration(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.track_duration
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_layer from a Result(ExifData, e)
+pub fn get_track_layer(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.track_layer
+    Error(_) -> option.None
+  }
+}
+
+/// Get the track_volume from a Result(ExifData, e)
+pub fn get_track_volume(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.track_volume
+    Error(_) -> option.None
+  }
+}
+
+/// Get the image_width from a Result(ExifData, e)
+pub fn get_image_width(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.image_width
+    Error(_) -> option.None
+  }
+}
+
+/// Get the image_height from a Result(ExifData, e)
+pub fn get_image_height(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.image_height
+    Error(_) -> option.None
+  }
+}
+
+/// Get the clean_aperture_dimensions from a Result(ExifData, e)
+pub fn get_clean_aperture_dimensions(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.clean_aperture_dimensions
+    Error(_) -> option.None
+  }
+}
+
+/// Get the production_aperture_dimensions from a Result(ExifData, e)
+pub fn get_production_aperture_dimensions(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.production_aperture_dimensions
+    Error(_) -> option.None
+  }
+}
+
+/// Get the encoded_pixels_dimensions from a Result(ExifData, e)
+pub fn get_encoded_pixels_dimensions(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.encoded_pixels_dimensions
+    Error(_) -> option.None
+  }
+}
+
+/// Get the graphics_mode from a Result(ExifData, e)
+pub fn get_graphics_mode(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.graphics_mode
+    Error(_) -> option.None
+  }
+}
+
+/// Get the op_color from a Result(ExifData, e)
+pub fn get_op_color(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.op_color
+    Error(_) -> option.None
+  }
+}
+
+/// Get the compressor_id from a Result(ExifData, e)
+pub fn get_compressor_id(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.compressor_id
+    Error(_) -> option.None
+  }
+}
+
+/// Get the source_image_width from a Result(ExifData, e)
+pub fn get_source_image_width(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.source_image_width
+    Error(_) -> option.None
+  }
+}
+
+/// Get the source_image_height from a Result(ExifData, e)
+pub fn get_source_image_height(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.source_image_height
+    Error(_) -> option.None
+  }
+}
+
+/// Get the x_resolution from a Result(ExifData, e)
+pub fn get_x_resolution(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.x_resolution
+    Error(_) -> option.None
+  }
+}
+
+/// Get the y_resolution from a Result(ExifData, e)
+pub fn get_y_resolution(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.y_resolution
+    Error(_) -> option.None
+  }
+}
+
+/// Get the compressor_name from a Result(ExifData, e)
+pub fn get_compressor_name(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.compressor_name
+    Error(_) -> option.None
+  }
+}
+
+/// Get the bit_depth from a Result(ExifData, e)
+pub fn get_bit_depth(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.bit_depth
+    Error(_) -> option.None
+  }
+}
+
+/// Get the video_frame_rate from a Result(ExifData, e)
+pub fn get_video_frame_rate(result: Result(ExifData, e)) -> option.Option(Float) {
+  case result {
+    Ok(data) -> data.video_frame_rate
+    Error(_) -> option.None
+  }
+}
+
+/// Get the lens_model from a Result(ExifData, e)
+pub fn get_lens_model(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.lens_model
+    Error(_) -> option.None
+  }
+}
+
+/// Get the lens_model_eng_us from a Result(ExifData, e)
+pub fn get_lens_model_eng_us(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.lens_model_eng_us
+    Error(_) -> option.None
+  }
+}
+
+/// Get the focal_length_in_35mm_format from a Result(ExifData, e)
+pub fn get_focal_length_in_35mm_format(
+  result: Result(ExifData, e),
+) -> option.Option(focal_length.FocalLength) {
+  case result {
+    Ok(data) -> data.focal_length_in_35mm_format
+    Error(_) -> option.None
+  }
+}
+
+/// Get the focal_length_in_35mm_format_eng_us from a Result(ExifData, e)
+pub fn get_focal_length_in_35mm_format_eng_us(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.focal_length_in_35mm_format_eng_us
+    Error(_) -> option.None
+  }
+}
+
+/// Get the balance from a Result(ExifData, e)
+pub fn get_balance(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.balance
+    Error(_) -> option.None
+  }
+}
+
+/// Get the audio_format from a Result(ExifData, e)
+pub fn get_audio_format(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.audio_format
+    Error(_) -> option.None
+  }
+}
+
+/// Get the audio_channels from a Result(ExifData, e)
+pub fn get_audio_channels(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.audio_channels
+    Error(_) -> option.None
+  }
+}
+
+/// Get the audio_bits_per_sample from a Result(ExifData, e)
+pub fn get_audio_bits_per_sample(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.audio_bits_per_sample
+    Error(_) -> option.None
+  }
+}
+
+/// Get the audio_sample_rate from a Result(ExifData, e)
+pub fn get_audio_sample_rate(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.audio_sample_rate
+    Error(_) -> option.None
+  }
+}
+
+/// Get the purchase_file_format from a Result(ExifData, e)
+pub fn get_purchase_file_format(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.purchase_file_format
+    Error(_) -> option.None
+  }
+}
+
+/// Get the content_describes from a Result(ExifData, e)
+pub fn get_content_describes(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.content_describes
+    Error(_) -> option.None
+  }
+}
+
+/// Get the matrix_structure from a Result(ExifData, e)
+pub fn get_matrix_structure(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.matrix_structure
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_header_version from a Result(ExifData, e)
+pub fn get_media_header_version(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.media_header_version
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_create_date from a Result(ExifData, e)
+pub fn get_media_create_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.media_create_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_modify_date from a Result(ExifData, e)
+pub fn get_media_modify_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.media_modify_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_time_scale from a Result(ExifData, e)
+pub fn get_media_time_scale(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.media_time_scale
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_duration from a Result(ExifData, e)
+pub fn get_media_duration(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.media_duration
+    Error(_) -> option.None
+  }
+}
+
+/// Get the media_language_code from a Result(ExifData, e)
+pub fn get_media_language_code(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.media_language_code
+    Error(_) -> option.None
+  }
+}
+
+/// Get the gen_media_version from a Result(ExifData, e)
+pub fn get_gen_media_version(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.gen_media_version
+    Error(_) -> option.None
+  }
+}
+
+/// Get the gen_flags from a Result(ExifData, e)
+pub fn get_gen_flags(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.gen_flags
+    Error(_) -> option.None
+  }
+}
+
+/// Get the gen_graphics_mode from a Result(ExifData, e)
+pub fn get_gen_graphics_mode(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.gen_graphics_mode
+    Error(_) -> option.None
+  }
+}
+
+/// Get the gen_op_color from a Result(ExifData, e)
+pub fn get_gen_op_color(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.gen_op_color
+    Error(_) -> option.None
+  }
+}
+
+/// Get the gen_balance from a Result(ExifData, e)
+pub fn get_gen_balance(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.gen_balance
+    Error(_) -> option.None
+  }
+}
+
+/// Get the handler_class from a Result(ExifData, e)
+pub fn get_handler_class(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.handler_class
+    Error(_) -> option.None
+  }
+}
+
+/// Get the handler_vendor_id from a Result(ExifData, e)
+pub fn get_handler_vendor_id(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.handler_vendor_id
+    Error(_) -> option.None
+  }
+}
+
+/// Get the handler_description from a Result(ExifData, e)
+pub fn get_handler_description(
+  result: Result(ExifData, e),
+) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.handler_description
+    Error(_) -> option.None
+  }
+}
+
+/// Get the handler_type from a Result(ExifData, e)
+pub fn get_handler_type(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.handler_type
+    Error(_) -> option.None
+  }
+}
+
+/// Get the meta_format from a Result(ExifData, e)
+pub fn get_meta_format(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.meta_format
+    Error(_) -> option.None
+  }
+}
+
+/// Get the make from a Result(ExifData, e)
+pub fn get_make(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.make
+    Error(_) -> option.None
+  }
+}
+
+/// Get the model from a Result(ExifData, e)
+pub fn get_model(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.model
+    Error(_) -> option.None
+  }
+}
+
+/// Get the software from a Result(ExifData, e)
+pub fn get_software(result: Result(ExifData, e)) -> option.Option(Float) {
+  case result {
+    Ok(data) -> data.software
+    Error(_) -> option.None
+  }
+}
+
+/// Get the display_name from a Result(ExifData, e)
+pub fn get_display_name(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.display_name
+    Error(_) -> option.None
+  }
+}
+
+/// Get the description from a Result(ExifData, e)
+pub fn get_description(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.description
+    Error(_) -> option.None
+  }
+}
+
+/// Get the creation_date from a Result(ExifData, e)
+pub fn get_creation_date(
+  result: Result(ExifData, e),
+) -> option.Option(tempo.DateTime) {
+  case result {
+    Ok(data) -> data.creation_date
+    Error(_) -> option.None
+  }
+}
+
+/// Get the keywords from a Result(ExifData, e)
+pub fn get_keywords(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.keywords
+    Error(_) -> option.None
+  }
+}
+
+/// Get the image_size from a Result(ExifData, e)
+pub fn get_image_size(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.image_size
+    Error(_) -> option.None
+  }
+}
+
+/// Get the megapixels from a Result(ExifData, e)
+pub fn get_megapixels(result: Result(ExifData, e)) -> option.Option(Float) {
+  case result {
+    Ok(data) -> data.megapixels
+    Error(_) -> option.None
+  }
+}
+
+/// Get the avg_bitrate from a Result(ExifData, e)
+pub fn get_avg_bitrate(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.avg_bitrate
+    Error(_) -> option.None
+  }
+}
+
+/// Get the rotation from a Result(ExifData, e)
+pub fn get_rotation(result: Result(ExifData, e)) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.rotation
+    Error(_) -> option.None
+  }
+}
+
+/// Get the lens_id from a Result(ExifData, e)
+pub fn get_lens_id(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.lens_id
+    Error(_) -> option.None
+  }
+}
+
+/// Get the exif_tool_version from a Result(ExifData, e)
+pub fn get_exif_tool_version(
+  result: Result(ExifData, e),
+) -> option.Option(Float) {
+  case result {
+    Ok(data) -> option.Some(data.exif_tool_version)
+    Error(_) -> option.None
+  }
+}
+
+/// Get the warning from a Result(ExifData, e)
+pub fn get_warning(result: Result(ExifData, e)) -> option.Option(String) {
+  case result {
+    Ok(data) -> data.warning
+    Error(_) -> option.None
+  }
+}
+
+/// Get the full_frame_rate_playback_intent from a Result(ExifData, e)
+pub fn get_full_frame_rate_playback_intent(
+  result: Result(ExifData, e),
+) -> option.Option(Int) {
+  case result {
+    Ok(data) -> data.full_frame_rate_playback_intent
+    Error(_) -> option.None
+  }
 }
