@@ -1,20 +1,15 @@
-# exiftool_caller
-
-[![Package Version](https://img.shields.io/hexpm/v/exiftool_caller)](https://hex.pm/packages/exiftool_caller)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/exiftool_caller/)
+# exif_reader
 
 ```sh
-gleam add exiftool_caller@1
+gleam add exif_reader@1
 ```
 ```gleam
-import exiftool_caller
+import exif_reader
 
 pub fn main() -> Nil {
   // TODO: An example of the project in use
 }
 ```
-
-Further documentation can be found at <https://hexdocs.pm/exiftool_caller>.
 
 ## Development
 

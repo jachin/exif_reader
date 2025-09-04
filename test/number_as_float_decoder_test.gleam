@@ -1,4 +1,4 @@
-import exiftool_caller
+import exif_reader
 import gleam/json
 import gleeunit
 import gleeunit/should
@@ -11,7 +11,7 @@ pub fn main() -> Nil {
 pub fn parse_zero_test() {
   let json_str = "0"
 
-  case json.parse(json_str, exiftool_caller.number_as_float_decoder()) {
+  case json.parse(json_str, exif_reader.number_as_float_decoder()) {
     Ok(number) -> {
       should.equal(number, 0.0)
     }
@@ -23,7 +23,7 @@ pub fn parse_zero_test() {
 pub fn parse_one_point_one_test() {
   let json_str = "1.1"
 
-  case json.parse(json_str, exiftool_caller.number_as_float_decoder()) {
+  case json.parse(json_str, exif_reader.number_as_float_decoder()) {
     Ok(number) -> {
       should.equal(number, 1.1)
     }
@@ -35,17 +35,14 @@ pub fn parse_one_point_one_test() {
 pub fn parse_string_fail_test() {
   let json_str = "\"some string\""
 
-  should.be_error(json.parse(
-    json_str,
-    exiftool_caller.number_as_float_decoder(),
-  ))
+  should.be_error(json.parse(json_str, exif_reader.number_as_float_decoder()))
 }
 
 // Test parsing a 1000
 pub fn parse_thousand_test() {
   let json_str = "1000"
 
-  case json.parse(json_str, exiftool_caller.number_as_float_decoder()) {
+  case json.parse(json_str, exif_reader.number_as_float_decoder()) {
     Ok(number) -> {
       should.equal(number, 1000.0)
     }

@@ -1,4 +1,4 @@
-import exiftool_caller
+import exif_reader
 import gleam/json
 import gleam/list
 import gleam/string
@@ -14,7 +14,7 @@ pub fn main() -> Nil {
 pub fn datetime_with_timezone_offset_test() {
   let json_str = "\"2024:01:15 10:30:00-05:00\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Should successfully parse the datetime
       let formatted = datetime.to_string(dt)
@@ -29,7 +29,7 @@ pub fn datetime_with_timezone_offset_test() {
 pub fn datetime_with_utc_plus_zero_test() {
   let json_str = "\"2024:01:15 10:30:00+00:00\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Should successfully parse after converting +00:00 to Z
       let formatted = datetime.to_string(dt)
@@ -44,7 +44,7 @@ pub fn datetime_with_utc_plus_zero_test() {
 pub fn datetime_without_timezone_test() {
   let json_str = "\"2024:01:15 10:30:00\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Should successfully parse and assume UTC
       let formatted = datetime.to_string(dt)
@@ -59,7 +59,7 @@ pub fn datetime_without_timezone_test() {
 pub fn datetime_future_date_test() {
   let json_str = "\"2025:07:10 01:31:54+00:00\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Future dates can actually be parsed by tempo
       let formatted = datetime.to_string(dt)
@@ -74,7 +74,7 @@ pub fn datetime_future_date_test() {
 pub fn datetime_invalid_format_test() {
   let json_str = "\"not a valid datetime\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(_) -> {
       // Invalid format should fail to parse entirely
       should.fail()
@@ -91,7 +91,7 @@ pub fn datetime_problematic_format_future_test() {
   // Test one of the problematic formats from the error message
   let json_str = "\"2025:07:09 20:31:55-05:00\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Future dates can actually be parsed by tempo
       let formatted = datetime.to_string(dt)
@@ -106,7 +106,7 @@ pub fn datetime_problematic_format_future_test() {
 pub fn datetime_with_z_timezone_test() {
   let json_str = "\"2024:01:15 10:30:00Z\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Should successfully parse with Z timezone
       let formatted = datetime.to_string(dt)
@@ -121,7 +121,7 @@ pub fn datetime_with_z_timezone_test() {
 pub fn datetime_epoch_test() {
   let json_str = "\"1970:01:01 00:00:00Z\""
 
-  case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+  case json.parse(json_str, exif_reader.datetime_decoder()) {
     Ok(dt) -> {
       // Should parse epoch correctly
       let formatted = datetime.to_string(dt)
@@ -148,7 +148,7 @@ pub fn datetime_multiple_problematic_formats_test() {
   list.each(test_cases, fn(test_case) {
     let #(json_str, should_be_epoch) = test_case
 
-    case json.parse(json_str, exiftool_caller.datetime_decoder()) {
+    case json.parse(json_str, exif_reader.datetime_decoder()) {
       Ok(dt) -> {
         let formatted = datetime.to_string(dt)
         case should_be_epoch {
