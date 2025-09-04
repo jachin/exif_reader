@@ -6,6 +6,7 @@ import gleam/string
 
 pub type FileSize {
   FileSize(bytes: Int)
+  UnknownFileSize
 }
 
 /// Convert an ExifTool FileSize string (e.g. "4.3 MB", "1,024 bytes", "2 GiB")
@@ -85,26 +86,31 @@ pub fn decoder() -> decode.Decoder(FileSize) {
 /// - FileSize(1536) -> "1.5 KiB"
 /// - FileSize(2147483648) -> "2.0 GiB"
 pub fn to_string(file_size: FileSize) -> String {
-  let FileSize(bytes) = file_size
-
-  case bytes {
-    0 -> "0 bytes"
-    b if b < 1024 -> int.to_string(b) <> " bytes"
-    b if b < 1024 * 1024 -> {
-      let kb = int.to_float(b) /. 1024.0
-      format_with_unit(kb, "KiB")
+  case file_size {
+    FileSize(bytes) -> {
+      case bytes {
+        0 -> "0 bytes"
+        b if b < 1024 -> int.to_string(b) <> " bytes"
+        b if b < 1024 * 1024 -> {
+          let kb = int.to_float(b) /. 1024.0
+          format_with_unit(kb, "KiB")
+        }
+        b if b < 1024 * 1024 * 1024 -> {
+          let mb = int.to_float(b) /. float_pow(1024.0, 2)
+          format_with_unit(mb, "MiB")
+        }
+        b if b < 1024 * 1024 * 1024 * 1024 -> {
+          let gb = int.to_float(b) /. float_pow(1024.0, 3)
+          format_with_unit(gb, "GiB")
+        }
+        b -> {
+          let tb = int.to_float(b) /. float_pow(1024.0, 4)
+          format_with_unit(tb, "TiB")
+        }
+      }
     }
-    b if b < 1024 * 1024 * 1024 -> {
-      let mb = int.to_float(b) /. float_pow(1024.0, 2)
-      format_with_unit(mb, "MiB")
-    }
-    b if b < 1024 * 1024 * 1024 * 1024 -> {
-      let gb = int.to_float(b) /. float_pow(1024.0, 3)
-      format_with_unit(gb, "GiB")
-    }
-    b -> {
-      let tb = int.to_float(b) /. float_pow(1024.0, 4)
-      format_with_unit(tb, "TiB")
+    UnknownFileSize -> {
+      "file size is unknown"
     }
   }
 }

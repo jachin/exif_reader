@@ -1,4 +1,5 @@
 import argv
+import file_size
 import focal_length
 import gleam/dynamic/decode
 import gleam/int
@@ -19,7 +20,7 @@ pub type ExifData {
     source_file: String,
     file_name: String,
     directory: String,
-    file_size: String,
+    file_size: file_size.FileSize,
     file_modify_date: tempo.DateTime,
     file_access_date: tempo.DateTime,
     file_inode_change_date: tempo.DateTime,
@@ -178,7 +179,7 @@ pub fn to_string(exif_data: ExifData) -> String {
   <> "\nDirectory: "
   <> exif_data.directory
   <> "\nSize: "
-  <> exif_data.file_size
+  <> exif_data.file_size |> file_size.to_string
   <> "\nType: "
   <> exif_data.file_type
   <> " ("
@@ -390,7 +391,7 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
 
   use file_name <- decode.field("FileName", decode.string)
   use directory <- decode.field("Directory", decode.string)
-  use file_size <- decode.field("FileSize", decode.string)
+  use file_size <- decode.field("FileSize", file_size.decoder())
   use file_modify_date <- decode.field("FileModifyDate", datetime_decoder())
   use file_access_date <- decode.field("FileAccessDate", datetime_decoder())
   use file_inode_change_date <- decode.field(
@@ -723,10 +724,10 @@ pub fn get_directory(result: Result(ExifData, e)) -> String {
 }
 
 /// Get the file_size from a Result(ExifData, e)
-pub fn get_file_size(result: Result(ExifData, e)) -> String {
+pub fn get_file_size(result: Result(ExifData, e)) -> file_size.FileSize {
   case result {
     Ok(data) -> data.file_size
-    Error(_) -> ""
+    Error(_) -> file_size.UnknownFileSize
   }
 }
 
