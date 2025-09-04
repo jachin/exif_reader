@@ -1,4 +1,5 @@
 import gleam/dynamic/decode
+import gleam/float
 import gleam/int
 import gleam/list
 import gleam/string
@@ -75,6 +76,39 @@ pub fn decoder() -> decode.Decoder(FileSize) {
   })
 }
 
+/// Convert a FileSize to a human-readable string
+/// Uses binary units (KiB, MiB, GiB, TiB) with appropriate precision
+///
+/// Examples:
+/// - FileSize(512) -> "512 bytes"
+/// - FileSize(1024) -> "1.0 KiB"
+/// - FileSize(1536) -> "1.5 KiB"
+/// - FileSize(2147483648) -> "2.0 GiB"
+pub fn to_string(file_size: FileSize) -> String {
+  let FileSize(bytes) = file_size
+
+  case bytes {
+    0 -> "0 bytes"
+    b if b < 1024 -> int.to_string(b) <> " bytes"
+    b if b < 1024 * 1024 -> {
+      let kb = int.to_float(b) /. 1024.0
+      format_with_unit(kb, "KiB")
+    }
+    b if b < 1024 * 1024 * 1024 -> {
+      let mb = int.to_float(b) /. float_pow(1024.0, 2)
+      format_with_unit(mb, "MiB")
+    }
+    b if b < 1024 * 1024 * 1024 * 1024 -> {
+      let gb = int.to_float(b) /. float_pow(1024.0, 3)
+      format_with_unit(gb, "GiB")
+    }
+    b -> {
+      let tb = int.to_float(b) /. float_pow(1024.0, 4)
+      format_with_unit(tb, "TiB")
+    }
+  }
+}
+
 // ---- Helpers ----
 
 fn split_number_and_unit(s: String) -> Result(#(String, String), String) {
@@ -143,5 +177,26 @@ fn loop(acc: Int, n: Int, base: Int) -> Int {
   case n {
     0 -> acc
     _ -> loop(acc * base, n - 1, base)
+  }
+}
+
+fn format_with_unit(value: Float, unit: String) -> String {
+  case float.truncate(value *. 10.0) % 10 {
+    0 -> int.to_string(float.truncate(value)) <> ".0 " <> unit
+    _ -> {
+      let rounded = int.to_float(float.truncate(value *. 10.0)) /. 10.0
+      float.to_string(rounded) <> " " <> unit
+    }
+  }
+}
+
+fn float_pow(base: Float, exp: Int) -> Float {
+  float_pow_loop(1.0, exp, base)
+}
+
+fn float_pow_loop(acc: Float, n: Int, base: Float) -> Float {
+  case n {
+    0 -> acc
+    _ -> float_pow_loop(acc *. base, n - 1, base)
   }
 }

@@ -62,3 +62,33 @@ pub fn decoder_test() {
     json.parse(from: "\"invalid size\"", using: file_size.decoder())
   invalid_result |> should.be_error()
 }
+
+pub fn to_string_test() {
+  let test_cases = [
+    // Bytes
+    #(file_size.FileSize(0), "0 bytes"),
+    #(file_size.FileSize(1), "1 bytes"),
+    #(file_size.FileSize(512), "512 bytes"),
+    #(file_size.FileSize(1023), "1023 bytes"),
+    // KiB
+    #(file_size.FileSize(1024), "1.0 KiB"),
+    #(file_size.FileSize(1536), "1.5 KiB"),
+    #(file_size.FileSize(2048), "2.0 KiB"),
+    #(file_size.FileSize(1024 * 1023), "1023.0 KiB"),
+    // MiB
+    #(file_size.FileSize(1024 * 1024), "1.0 MiB"),
+    #(file_size.FileSize(1024 * 1024 + 512 * 1024), "1.5 MiB"),
+    #(file_size.FileSize(2 * 1024 * 1024), "2.0 MiB"),
+    // GiB
+    #(file_size.FileSize(1024 * 1024 * 1024), "1.0 GiB"),
+    #(file_size.FileSize(2_147_483_648), "2.0 GiB"),
+    // TiB
+    #(file_size.FileSize(1024 * 1024 * 1024 * 1024), "1.0 TiB"),
+  ]
+
+  list.map(test_cases, fn(test_case) {
+    let #(input, expected) = test_case
+    let result = file_size.to_string(input)
+    result |> should.equal(expected)
+  })
+}
