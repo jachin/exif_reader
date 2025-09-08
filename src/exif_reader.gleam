@@ -1,5 +1,6 @@
 import argv
 import file_size
+import file_type
 import focal_length
 import gleam/dynamic/decode
 import gleam/int
@@ -25,7 +26,7 @@ pub type ExifData {
     file_access_date: tempo.DateTime,
     file_inode_change_date: tempo.DateTime,
     file_permissions: String,
-    file_type: String,
+    file_type: file_type.FileType,
     file_type_extension: String,
     mime_type: String,
     // Media information
@@ -181,7 +182,7 @@ pub fn to_string(exif_data: ExifData) -> String {
   <> "\nSize: "
   <> exif_data.file_size |> file_size.to_string
   <> "\nType: "
-  <> exif_data.file_type
+  <> file_type.to_string(exif_data.file_type)
   <> " ("
   <> exif_data.mime_type
   <> ")"
@@ -399,7 +400,7 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
     datetime_decoder(),
   )
   use file_permissions <- decode.field("FilePermissions", decode.string)
-  use file_type <- decode.field("FileType", decode.string)
+  use file_type <- decode.field("FileType", file_type.decoder())
   use file_type_extension <- decode.field("FileTypeExtension", decode.string)
   use mime_type <- decode.field("MIMEType", decode.string)
 
@@ -770,10 +771,10 @@ pub fn get_file_permissions(result: Result(ExifData, e)) -> String {
 }
 
 /// Get the file_type from a Result(ExifData, e)
-pub fn get_file_type(result: Result(ExifData, e)) -> String {
+pub fn get_file_type(result: Result(ExifData, e)) -> file_type.FileType {
   case result {
     Ok(data) -> data.file_type
-    Error(_) -> ""
+    Error(_) -> file_type.from_string("")
   }
 }
 
