@@ -259,6 +259,68 @@ pub fn decoder() -> decode.Decoder(FileType) {
   |> decode.map(from_string)
 }
 
+pub fn object_decoder() -> decode.Decoder(FileType) {
+  use file_type_str <- decode.field("file_type", decode.string)
+  use extension <- decode.field("file_type_extension", decode.string)
+  use mime_string <- decode.field("mime_type", decode.string)
+  decode.success(construct_file_type(file_type_str, extension, mime_string))
+}
+
+pub fn construct_file_type(
+  file_type_str: String,
+  extension: String,
+  mime_string: String,
+) -> FileType {
+  let normalized = string.uppercase(file_type_str)
+  let mime_type = parse_mime_type(mime_string)
+
+  case normalized {
+    "JPEG" | "JPG" -> Image(JPEG, extension, mime_type)
+    "PNG" -> Image(PNG, extension, mime_type)
+    "GIF" -> Image(GIF, extension, mime_type)
+    "BMP" -> Image(BMP, extension, mime_type)
+    "TIFF" | "TIF" -> Image(TIFF, extension, mime_type)
+    "WEBP" -> Image(WEBP, extension, mime_type)
+    "HEIC" | "HEIF" -> Image(HEIC, extension, mime_type)
+    "SVG" -> Image(SVG, extension, mime_type)
+    "RAW" | "CR2" | "NEF" | "ARW" | "DNG" -> Image(RAW, extension, mime_type)
+    "PSD" -> Image(PSD, extension, mime_type)
+
+    "MP4" -> Video(MP4, extension, mime_type)
+    "MOV" -> Video(MOV, extension, mime_type)
+    "AVI" -> Video(AVI, extension, mime_type)
+    "MKV" -> Video(MKV, extension, mime_type)
+    "WEBM" -> Video(WEBM, extension, mime_type)
+    "FLV" -> Video(FLV, extension, mime_type)
+    "WMV" -> Video(WMV, extension, mime_type)
+    "M4V" -> Video(M4V, extension, mime_type)
+
+    "MP3" -> Audio(MP3, extension, mime_type)
+    "WAV" -> Audio(WAV, extension, mime_type)
+    "FLAC" -> Audio(FLAC, extension, mime_type)
+    "AAC" -> Audio(AAC, extension, mime_type)
+    "OGG" -> Audio(OGG, extension, mime_type)
+    "M4A" -> Audio(M4A, extension, mime_type)
+    "WMA" -> Audio(WMA, extension, mime_type)
+
+    "PDF" -> Document(PDF, extension, mime_type)
+    "DOC" -> Document(DOC, extension, mime_type)
+    "DOCX" -> Document(DOCX, extension, mime_type)
+    "TXT" -> Document(TXT, extension, mime_type)
+    "RTF" -> Document(RTF, extension, mime_type)
+    "ODT" -> Document(ODT, extension, mime_type)
+
+    "ZIP" -> Archive(ZIP, extension, mime_type)
+    "RAR" -> Archive(RAR, extension, mime_type)
+    "7Z" -> Archive(SevenZ, extension, mime_type)
+    "TAR" -> Archive(TAR, extension, mime_type)
+    "GZ" -> Archive(GZ, extension, mime_type)
+    "BZ2" -> Archive(BZ2, extension, mime_type)
+
+    _ -> Unknown(file_type_str, extension, mime_type)
+  }
+}
+
 pub fn to_string(file_type: FileType) -> String {
   case file_type {
     Image(format, _, _) -> image_format_to_string(format)

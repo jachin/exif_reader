@@ -27,8 +27,6 @@ pub type ExifData {
     file_inode_change_date: tempo.DateTime,
     file_permissions: String,
     file_type: file_type.FileType,
-    file_type_extension: String,
-    mime_type: String,
     // Media information
     major_brand: option.Option(String),
     minor_version: option.Option(String),
@@ -184,10 +182,10 @@ pub fn to_string(exif_data: ExifData) -> String {
   <> "\nType: "
   <> file_type.to_string(exif_data.file_type)
   <> " ("
-  <> exif_data.mime_type
+  <> file_type.mime_to_string(file_type.get_mime(exif_data.file_type))
   <> ")"
   <> "\nFile Type Extension: "
-  <> exif_data.file_type_extension
+  <> file_type.get_extension(exif_data.file_type)
   <> "\nModified: "
   <> datetime.to_string(exif_data.file_modify_date)
   <> "\nAccessed: "
@@ -400,7 +398,7 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
     datetime_decoder(),
   )
   use file_permissions <- decode.field("FilePermissions", decode.string)
-  use file_type <- decode.field("FileType", file_type.decoder())
+  use file_type_str <- decode.field("FileType", decode.string)
   use file_type_extension <- decode.field("FileTypeExtension", decode.string)
   use mime_type <- decode.field("MIMEType", decode.string)
 
@@ -556,9 +554,11 @@ pub fn exif_data_decoder() -> decode.Decoder(ExifData) {
     file_access_date: file_access_date,
     file_inode_change_date: file_inode_change_date,
     file_permissions: file_permissions,
-    file_type: file_type,
-    file_type_extension: file_type_extension,
-    mime_type: mime_type,
+    file_type: file_type.construct_file_type(
+      file_type_str,
+      file_type_extension,
+      mime_type,
+    ),
     major_brand: major_brand,
     minor_version: minor_version,
     compatible_brands: compatible_brands,
@@ -781,7 +781,7 @@ pub fn get_file_type(result: Result(ExifData, e)) -> file_type.FileType {
 /// Get the file_type_extension from a Result(ExifData, e)
 pub fn get_file_type_extension(result: Result(ExifData, e)) -> String {
   case result {
-    Ok(data) -> data.file_type_extension
+    Ok(data) -> file_type.get_extension(data.file_type)
     Error(_) -> ""
   }
 }
@@ -789,7 +789,7 @@ pub fn get_file_type_extension(result: Result(ExifData, e)) -> String {
 /// Get the mime_type from a Result(ExifData, e)
 pub fn get_mime_type(result: Result(ExifData, e)) -> String {
   case result {
-    Ok(data) -> data.mime_type
+    Ok(data) -> file_type.mime_to_string(file_type.get_mime(data.file_type))
     Error(_) -> ""
   }
 }
